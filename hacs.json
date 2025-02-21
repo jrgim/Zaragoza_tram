@@ -2,6 +2,5 @@
     "name": "Zaragoza Tram",
     "render_readme": true,
     "content_in_root": false,
-    "domains": ["sensor"],
     "zip_release": false
 }

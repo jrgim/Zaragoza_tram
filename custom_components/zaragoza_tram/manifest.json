@@ -4,6 +4,7 @@
     "version": "1.0",
     "config_flow": true,
     "documentation": "https://github.com/jrgim/Zaragoza_tram",
+    "issue_tracker": "https://github.com/jrgim/Zaragoza_tram/issues",
     "dependencies": [],
     "codeowners": ["@jrgim"],
     "requirements": []
