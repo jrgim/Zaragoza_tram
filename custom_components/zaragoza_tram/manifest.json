@@ -3,7 +3,7 @@
     "name": "Zaragoza Tram",
     "version": "1.0",
     "config_flow": true,
-    "documentation": "https://github.com/tu-repositorio",
+    "documentation": "https://github.com/jrgim/Zaragoza_tram",
     "dependencies": [],
     "codeowners": ["@jrgim"],
     "requirements": []
