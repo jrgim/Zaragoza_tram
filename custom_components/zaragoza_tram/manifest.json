@@ -1,0 +1,10 @@
+{
+    "domain": "zaragoza_tram",
+    "name": "Zaragoza Tram",
+    "version": "1.0",
+    "config_flow": true,
+    "documentation": "https://github.com/tu-repositorio",
+    "dependencies": [],
+    "codeowners": ["@jrgim"],
+    "requirements": []
+}
