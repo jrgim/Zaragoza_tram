@@ -1,6 +1,5 @@
 # **Zaragoza Tram**
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
-![logo tranvia y reloj](logo.png)
 ¡Bienvenido a la integración **Zaragoza Tram** para Home Assistant! Esta integración te permite crear sensores que muestran el tiempo restante para los dos próximos tranvías en llegar a una parada específica de Zaragoza.
 Esta integracion obtiene los datos gracias a la API que pone a disposicion el Ayuntamiento de Zaragoza. [API REST Zaragoza](https://www.zaragoza.es/sede/portal/datos-abiertos/servicio/catalogo/327) 
 
