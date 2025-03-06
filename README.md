@@ -1,28 +1,28 @@
 # **Zaragoza Tram**
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
-¡Bienvenido a la integración **Zaragoza Tram** para Home Assistant! Esta integración te permite crear sensores que muestran el tiempo restante para los dos próximos tranvías en llegar a una parada específica de Zaragoza.
-Esta integracion obtiene los datos gracias a la API que pone a disposicion el Ayuntamiento de Zaragoza. [API REST Zaragoza](https://www.zaragoza.es/sede/portal/datos-abiertos/servicio/catalogo/327) 
+Welcome to the **Zaragoza Tram** integration for Home Assistant! This integration allows you to create sensors that show the remaining time for the next two trams to arrive at a specific stop in Zaragoza.
+This integration obtains the data thanks to the API made available by the Zaragoza City Council. [API REST Zaragoza](https://www.zaragoza.es/sede/portal/datos-abiertos/servicio/catalogo/327) 
 
-## **Instalación**
+## **Installation**
 
 ### **1. Manual**
 
-1. Descarga los archivos de este repositorio.
-2. Copia la carpeta `zaragoza_tram` en el directorio `custom_components` dentro de tu configuración de Home Assistant.
-    - Si no existe la carpeta `custom_components`, créala en el directorio raíz de tu configuración.
-3. Reinicia Home Assistant.
+1. Download the files from this repository.
+2. Copy the `zaragoza_tram` folder into the `custom_components` directory inside your Home Assistant configuration.
+- If the `custom_components` folder does not exist, create it in the root directory of your configuration.
+3. Restart Home Assistant.
 
-### **2. Usando HACS**
+### **2. Using HACS**
 
-1. Añade este repositorio como un repositorio personalizado en HACS.
-2. Busca "Zaragoza Tram" en HACS e instálalo.
-3. Reinicia Home Assistant.
+1. Add this repository as a custom repository in HACS.
+2. Search for "Zaragoza Tram" in HACS and install it.
+3. Restart Home Assistant.
 
-## **Configuración**
+## **Settings**
 
-### **Desde la Interfaz de Usuario**
+### **From the User Interface**
 
-1. Ve a **Configuración** → **Dispositivos e Integraciones**.
-2. Haz clic en el botón "+" y busca "Zaragoza Tram".
-3. Selecciona la parada que deseas configurar desde la lista desplegable.
-4. Guarda los cambios y listo: ¡tendrás dos sensores configurados automáticamente!
+1. Go to **Settings** → **Devices and Integrations**.
+2. Click the "+" button and search for "Zaragoza Tram".
+3. Select the stop you want to configure from the drop-down list.
+4. Save the changes and that's it: you'll have two sensors automatically configured!
