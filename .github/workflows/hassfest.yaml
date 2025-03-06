@@ -1,29 +1,14 @@
-name: HassFest Validation
+name: Validate with hassfest
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+  schedule:
+    - cron: "0 0 * * *"
 
 jobs:
-  hassfest:
-    runs-on: ubuntu-latest
+  validate:
+    runs-on: "ubuntu-latest"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install homeassistant-hassfest
-
-      - name: Run HassFest
-        run: hassfest
+      - uses: "actions/checkout@v3"
+      - uses: home-assistant/actions/hassfest@master
