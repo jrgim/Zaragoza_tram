@@ -1,12 +1,12 @@
 {
     "domain": "zaragoza_tram",
     "name": "Zaragoza Tram",
-    "version": "1.0",
-    "config_flow": true,
-    "documentation": "https://github.com/jrgim/Zaragoza_tram",
-    "issue_tracker": "https://github.com/jrgim/Zaragoza_tram/issues",
-    "dependencies": [],
     "codeowners": ["@jrgim"],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/jrgim/Zaragoza_tram",
+    "iot_class": "cloud_polling",
+    "issue_tracker": "https://github.com/jrgim/Zaragoza_tram/issues",
     "requirements": ["requests"],
-    "iot_class": "cloud_polling"
+    "version": "1.0"
 }
