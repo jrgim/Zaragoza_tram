@@ -14,6 +14,7 @@ This integration obtains the data thanks to the API made available by the Zarago
 
 ### **2. Using HACS**
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jrgim&repository=https%3A%2F%2Fgithub.com%2Fjrgim%2FZaragoza_tram)
 1. Add this repository as a custom repository in HACS.
 2. Search for "Zaragoza Tram" in HACS and install it.
 3. Restart Home Assistant.
