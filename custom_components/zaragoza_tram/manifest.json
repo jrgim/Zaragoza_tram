@@ -7,5 +7,6 @@
     "issue_tracker": "https://github.com/jrgim/Zaragoza_tram/issues",
     "dependencies": [],
     "codeowners": ["@jrgim"],
-    "requirements": []
+    "requirements": ["requests"],
+    "iot_class": "cloud_polling"
 }
