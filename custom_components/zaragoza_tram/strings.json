@@ -1,6 +1,21 @@
 {
   "config": {
     "step": {
+      "bus_buscar": {
+        "title": "Buscar parada",
+        "data": {
+          "query": "Dirección, código o línea"
+        },
+        "data_description": {
+          "query": "Escribe parte de la dirección de la parada (p. ej. \"San Juan Bosco\"), el código oficial (PA00100) o un número de línea"
+        }
+      },
+      "bus_buscar_resultados": {
+        "title": "Elige tu parada",
+        "data": {
+          "parada_busqueda": "Parada"
+        }
+      },
       "bus_manual": {
         "data_description": {
           "linea": "Déjalo en blanco si quieres todas las líneas"
