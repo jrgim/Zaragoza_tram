@@ -50,7 +50,7 @@ Los datos se obtienen gracias a la API proporcionada por el Ayuntamiento de Zara
 
 **Bus**: primero eliges cómo identificar la parada:
 - **Buscar la parada en el listado**: escribe parte de la dirección (o el número de línea) y elige entre los resultados.
-- **Ya sé el código de la parada**: escribe el código tal cual aparece en la marquesina/app oficial (`PA00239`) o el número de poste (`239`).
+- **Ya sé el código de la parada**: escribe el código tal cual aparece en la marquesina/app oficial (`PA00100`) o el número de poste (`100`).
 
 Después, opcionalmente puedes filtrar por línea. Si dejas la línea en blanco, eliges entre:
 - **Próximo y siguiente (cualquier línea)**: dos sensores con las dos llegadas más próximas a la parada, sea cual sea la línea (la línea de cada llegada va en el atributo `linea`, ya que puede cambiar de una actualización a otra).
@@ -261,12 +261,12 @@ En modo "Próximo y siguiente (cualquier línea)" la línea de cada llegada pued
 type: vertical-stack
 cards:
   - type: custom:mushroom-title-card
-    title: 🚌 Próximo Bus - Av. San Juan Bosco
-    subtitle: Parada 239
+    title: 🚌 Próximo Bus - Av. Ejemplo
+    subtitle: Parada 100
   - type: horizontal-stack
     cards:
       - type: custom:mushroom-template-card
-        entity: sensor.bus_proximo_parada_239
+        entity: sensor.bus_proximo_parada_100
         primary: "Línea {{ state_attr(entity, 'linea') }}"
         secondary: "{{ states(entity) }} min"
         icon: mdi:bus
@@ -275,7 +275,7 @@ cards:
         tap_action:
           action: more-info
       - type: custom:mushroom-template-card
-        entity: sensor.bus_siguiente_parada_239
+        entity: sensor.bus_siguiente_parada_100
         primary: "Línea {{ state_attr(entity, 'linea') }}"
         secondary: "{{ states(entity) }} min"
         icon: mdi:bus
@@ -287,14 +287,14 @@ cards:
 
 ### **Ejemplo con button-card para bus (modo "una entidad por línea")**
 
-En modo "Una entidad por línea" cada línea tiene su propio par de sensores, así que aquí la línea sí es fija y se puede poner directamente en el nombre de cada tarjeta (sin plantillas). Ejemplo con las líneas 22, 35 y 41 de la parada 239 — ajusta los `entity` y las líneas a las tuyas.
+En modo "Una entidad por línea" cada línea tiene su propio par de sensores, así que aquí la línea sí es fija y se puede poner directamente en el nombre de cada tarjeta (sin plantillas). Ejemplo con tres líneas (10, 20 y 30) de la parada 100 — ajusta los `entity` y las líneas a las tuyas.
 
 ```yaml
 type: vertical-stack
 cards:
   - type: custom:button-card
-    name: 🚌 Av. San Juan Bosco
-    label: "Parada 239"
+    name: 🚌 Av. Ejemplo
+    label: "Parada 100"
     color_type: card
     styles:
       card:
@@ -304,7 +304,7 @@ cards:
         - font-weight: bold
         - padding: 20px
         - border-radius: 20px
-        - box-shadow: 0 8px 18px rgba(239,108,0,0.13)
+        - box-shadow: 0 8px 18px rgba(230,108,0,0.13)
       name:
         - font-size: 26px
         - font-weight: bold
@@ -315,8 +315,8 @@ cards:
   - type: horizontal-stack
     cards:
       - type: custom:button-card
-        entity: sensor.bus_22_proximo_parada_239
-        name: Línea 22
+        entity: sensor.bus_10_proximo_parada_100
+        name: Línea 10
         icon: mdi:bus
         color_type: icon
         show_state: true
@@ -338,8 +338,8 @@ cards:
         tap_action:
           action: more-info
       - type: custom:button-card
-        entity: sensor.bus_35_proximo_parada_239
-        name: Línea 35
+        entity: sensor.bus_20_proximo_parada_100
+        name: Línea 20
         icon: mdi:bus
         color_type: icon
         show_state: true
@@ -361,8 +361,8 @@ cards:
         tap_action:
           action: more-info
       - type: custom:button-card
-        entity: sensor.bus_41_proximo_parada_239
-        name: Línea 41
+        entity: sensor.bus_30_proximo_parada_100
+        name: Línea 30
         icon: mdi:bus
         color_type: icon
         show_state: true

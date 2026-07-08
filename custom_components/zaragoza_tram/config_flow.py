@@ -159,7 +159,7 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     def _etiqueta(poste):
-        """Reordena '(239) Av. San Juan... Líneas: 22' a 'Av. San Juan... Líneas: 22 [239]'
+        """Reordena '(100) Av. Ejemplo Líneas: 10' a 'Av. Ejemplo Líneas: 10 [100]'
         para que la dirección quede primero (y así se pueda ordenar/leer por calle)."""
         match = RE_TITULO.match(poste["title"])
         if not match:
