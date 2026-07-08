@@ -240,6 +240,8 @@ cards:
 
 ### **Ejemplo con Mushroom Cards para bus (modo combinado)**
 
+> ⚠️ **En modo "Próximo y siguiente (cualquier línea)" la línea de cada llegada NO aparece en el estado del sensor**, solo como atributo `linea` (porque puede cambiar de una actualización a otra — mira más arriba por qué). El diálogo estándar "más información" de Home Assistant no muestra ese atributo para un sensor normal, así que para verlo en el panel de un vistazo necesitas una tarjeta como esta (o consultarlo en **Herramientas de desarrollo → Estados**). Si prefieres tenerlo siempre visible sin depender de una tarjeta, usa el modo "Una entidad por línea" en su lugar.
+
 En modo "Próximo y siguiente (cualquier línea)" la línea de cada llegada puede cambiar entre actualizaciones, así que en vez de una `mushroom-entity-card` normal usamos una `mushroom-template-card` para mostrar juntos el estado y el atributo `linea`. Cambia los `entity` por los tuyos (los ves en **Ajustes → Dispositivos y servicios → Entidades**).
 
 ```yaml

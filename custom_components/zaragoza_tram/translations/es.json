@@ -10,6 +10,9 @@
         "data_description": {
           "linea": "Déjalo en blanco si quieres todas las líneas"
         }
+      },
+      "bus_mode": {
+        "description": "Si combinas todas las líneas, la línea de cada llegada solo aparece como atributo 'linea' del sensor (no se ve en el valor principal). Para verla en el panel sin entrar en el detalle de la entidad necesitarás una tarjeta personalizada (mira los ejemplos del README). Si prefieres verla siempre en el estado, elige 'Una entidad por línea'."
       }
     }
   }
