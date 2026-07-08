@@ -8,6 +8,19 @@ Esta integración te permite crear sensores que muestran el tiempo restante para
 Los datos se obtienen gracias a la API proporcionada por el Ayuntamiento de Zaragoza:  
 [API REST Zaragoza](https://www.zaragoza.es/sede/portal/datos-abiertos/servicio/catalogo/327)
 
+## **Índice**
+
+- [Instalación](#instalación)
+  - [1. Manual](#1-manual)
+  - [2. Usando HACS](#2-usando-hacs)
+- [Configuración](#configuración)
+  - [Desde la Interfaz de Usuario](#desde-la-interfaz-de-usuario)
+- [Ejemplos de tarjetas Lovelace (opcionales)](#ejemplos-de-tarjetas-lovelace-opcionales)
+  - [Ejemplo sencillo con Mushroom Cards](#ejemplo-sencillo-con-mushroom-cards)
+  - [Ejemplo avanzado para Plaza España (Dirección: Mago de Oz)](#ejemplo-avanzado-para-plaza-españa-dirección-mago-de-oz)
+  - [Ejemplo con Mushroom Cards para bus (modo combinado)](#ejemplo-con-mushroom-cards-para-bus-modo-combinado)
+  - [Ejemplo con button-card para bus (modo "una entidad por línea")](#ejemplo-con-button-card-para-bus-modo-una-entidad-por-línea)
+
 ## **Instalación**
 
 ### **1. Manual**
