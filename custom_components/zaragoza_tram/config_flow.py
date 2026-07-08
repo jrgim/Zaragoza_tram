@@ -13,7 +13,7 @@ MAX_RESULTADOS_BUSQUEDA = 30
 MODO_COMBINADO = "Próximo y siguiente (cualquier línea)"
 MODO_POR_LINEA = "Una entidad por línea"
 
-BUSQUEDA_MANUAL = "Ya sé el código de la parada (PA00239, poste, etc.)"
+BUSQUEDA_MANUAL = "Ya sé el código de la parada"
 BUSQUEDA_LISTADO = "Buscar la parada en el listado"
 
 class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
