@@ -128,7 +128,12 @@ class ZaragozaBusSensor(SensorEntity):
         return self._attrs
 
     def update(self):
-        data = fetch_json_con_reintentos(BUS_API_URL.format(poste=self._parada))
+        # cache_ttl: cuando hay varios sensores para la misma parada (próximo/
+        # siguiente, o una entidad por línea), evita pedir el mismo poste
+        # varias veces seguidas en el mismo ciclo de sondeo.
+        data = fetch_json_con_reintentos(
+            BUS_API_URL.format(poste=self._parada), cache_ttl=20
+        )
         if data is None:
             # La API del SAE falla a menudo, incluso tras reintentar:
             # conservamos el último dato en vez de dejar el sensor vacío.
