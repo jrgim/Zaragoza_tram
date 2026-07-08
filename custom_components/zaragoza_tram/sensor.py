@@ -21,11 +21,20 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     if tipo == "bus":
         parada = entry.data["parada"]
-        linea = entry.data.get("linea") or None
-        async_add_entities([
-            ZaragozaBusSensor(parada, linea, 1),
-            ZaragozaBusSensor(parada, linea, 2),
-        ])
+        modo = entry.data.get("modo", "combinado")
+
+        if modo == "por_linea":
+            entities = []
+            for linea in entry.data.get("lineas", []):
+                entities.append(ZaragozaBusSensor(parada, linea, 1))
+                entities.append(ZaragozaBusSensor(parada, linea, 2))
+            async_add_entities(entities)
+        else:
+            linea = entry.data.get("linea") or None
+            async_add_entities([
+                ZaragozaBusSensor(parada, linea, 1),
+                ZaragozaBusSensor(parada, linea, 2),
+            ])
     else:
         stop_id = entry.data.get("stop_id")
         stop_name = entry.data.get("stop_name")
