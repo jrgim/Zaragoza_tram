@@ -20,11 +20,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
     tipo = entry.data.get("tipo", "tram")  # entradas antiguas no tienen "tipo"
 
     if tipo == "bus":
-        poste = entry.data["poste"]
+        parada = entry.data["parada"]
         linea = entry.data.get("linea") or None
         async_add_entities([
-            ZaragozaBusSensor(poste, linea, 1),
-            ZaragozaBusSensor(poste, linea, 2),
+            ZaragozaBusSensor(parada, linea, 1),
+            ZaragozaBusSensor(parada, linea, 2),
         ])
     else:
         stop_id = entry.data.get("stop_id")
@@ -75,13 +75,19 @@ class ZaragozaTramSensor(SensorEntity):
 
 
 class ZaragozaBusSensor(SensorEntity):
-    """Bus N (1=próximo, 2=siguiente) en un poste, opcionalmente filtrado por línea."""
+    """Bus N (1=próximo, 2=siguiente) en una parada, opcionalmente filtrado por línea.
+
+    Sin filtro de línea, "próximo"/"siguiente" son las dos llegadas más
+    cercanas de CUALQUIER línea que pase por la parada (no siempre coinciden
+    con el "primero"/"segundo" de una única línea): la API devuelve las
+    líneas en un orden que no está garantizado que sea por tiempo de llegada.
+    """
 
     _attr_icon = "mdi:bus"
     _attr_native_unit_of_measurement = "min"
 
-    def __init__(self, poste, linea, bus_number):
-        self._poste = poste
+    def __init__(self, parada, linea, bus_number):
+        self._parada = parada
         self._linea = linea
         self._bus_number = bus_number
         self._state = None
@@ -89,11 +95,11 @@ class ZaragozaBusSensor(SensorEntity):
 
         etiqueta = "próximo" if bus_number == 1 else "siguiente"
         if linea:
-            self._name = f"Bus {linea} {etiqueta} - Poste {poste}"
-            self._attr_unique_id = f"{DOMAIN}_bus_{poste}_{linea}_{bus_number}"
+            self._name = f"Bus {linea} {etiqueta} - Parada {parada}"
+            self._attr_unique_id = f"{DOMAIN}_bus_{parada}_{linea}_{bus_number}"
         else:
-            self._name = f"Bus {etiqueta} - Poste {poste}"
-            self._attr_unique_id = f"{DOMAIN}_bus_{poste}_{bus_number}"
+            self._name = f"Bus {etiqueta} - Parada {parada}"
+            self._attr_unique_id = f"{DOMAIN}_bus_{parada}_{bus_number}"
 
     @property
     def name(self):
@@ -109,7 +115,7 @@ class ZaragozaBusSensor(SensorEntity):
 
     def update(self):
         try:
-            response = requests.get(BUS_API_URL.format(poste=self._poste), timeout=15)
+            response = requests.get(BUS_API_URL.format(poste=self._parada), timeout=15)
         except requests.RequestException:
             # La API del SAE falla a menudo: conservamos el último dato
             return
@@ -123,15 +129,43 @@ class ZaragozaBusSensor(SensorEntity):
             return
 
         destinos = data.get("destinos", [])
+
         if self._linea:
             destinos = [d for d in destinos if d.get("linea", "").upper() == self._linea]
+            if not destinos:
+                self._state = None
+                return
+            destino = destinos[0]
+            campo = "primero" if self._bus_number == 1 else "segundo"
+            self._set_state(data, destino, campo)
+            return
 
-        if not destinos:
+        # Sin filtro: mezclamos las llegadas (primero y segundo) de todas
+        # las líneas de la parada y nos quedamos con la N-ésima más cercana.
+        llegadas = []
+        for destino in destinos:
+            for campo in ("primero", "segundo"):
+                minutos = parse_minutos(destino.get(campo))
+                if minutos is not None:
+                    llegadas.append((minutos, destino, campo))
+
+        llegadas.sort(key=lambda item: item[0])
+
+        if len(llegadas) < self._bus_number:
             self._state = None
             return
 
-        destino = destinos[0]
-        campo = "primero" if self._bus_number == 1 else "segundo"
+        minutos, destino, campo = llegadas[self._bus_number - 1]
+        self._state = minutos
+        self._attrs = {
+            "parada": data.get("title"),
+            "linea": destino.get("linea"),
+            "destino": destino.get("destino"),
+            "texto_original": destino.get(campo),
+            "ultima_actualizacion_api": data.get("lastUpdated"),
+        }
+
+    def _set_state(self, data, destino, campo):
         self._state = parse_minutos(destino.get(campo))
         self._attrs = {
             "parada": data.get("title"),

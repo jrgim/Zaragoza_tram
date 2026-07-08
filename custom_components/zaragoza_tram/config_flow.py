@@ -4,7 +4,7 @@ from homeassistant import config_entries
 import voluptuous as vol
 from .const import DOMAIN, PARADAS
 
-RE_POSTE = re.compile(r"^(?:PA)?0*(\d+)$", re.IGNORECASE)
+RE_PARADA = re.compile(r"^(?:PA)?0*(\d+)$", re.IGNORECASE)
 
 class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -47,33 +47,33 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_bus(self, user_input=None):
-        """Configuración de poste de bus: número de marquesina + línea opcional."""
+        """Configuración de parada de bus: código de parada + línea opcional."""
         errors = {}
 
         if user_input is not None:
-            poste_raw = user_input["poste"].strip()
+            parada_raw = user_input["parada"].strip()
             linea = user_input.get("linea", "").strip().upper()
 
-            match = RE_POSTE.match(poste_raw)
+            match = RE_PARADA.match(parada_raw)
             if not match:
-                errors["base"] = "invalid_poste"
+                errors["base"] = "invalid_parada"
             else:
-                poste = match.group(1)
-                await self.async_set_unique_id(f"bus_{poste}_{linea}" if linea else f"bus_{poste}")
+                parada = match.group(1)
+                await self.async_set_unique_id(f"bus_{parada}_{linea}" if linea else f"bus_{parada}")
                 self._abort_if_unique_id_configured()
 
-                title = f"Bus poste {poste}"
+                title = f"Bus parada {parada}"
                 if linea:
                     title += f" (línea {linea})"
                 return self.async_create_entry(
                     title=title,
-                    data={"tipo": "bus", "poste": poste, "linea": linea},
+                    data={"tipo": "bus", "parada": parada, "linea": linea},
                 )
 
         return self.async_show_form(
             step_id="bus",
             data_schema=vol.Schema({
-                vol.Required("poste"): str,
+                vol.Required("parada"): str,
                 vol.Optional("linea", default=""): str,
             }),
             errors=errors,
