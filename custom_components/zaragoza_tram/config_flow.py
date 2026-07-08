@@ -1,6 +1,10 @@
+import re
+
 from homeassistant import config_entries
 import voluptuous as vol
 from .const import DOMAIN, PARADAS
+
+RE_POSTE = re.compile(r"^(?:PA)?0*(\d+)$", re.IGNORECASE)
 
 class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -47,12 +51,14 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            poste = user_input["poste"].strip()
+            poste_raw = user_input["poste"].strip()
             linea = user_input.get("linea", "").strip().upper()
 
-            if not poste.isdigit():
+            match = RE_POSTE.match(poste_raw)
+            if not match:
                 errors["base"] = "invalid_poste"
             else:
+                poste = match.group(1)
                 await self.async_set_unique_id(f"bus_{poste}_{linea}" if linea else f"bus_{poste}")
                 self._abort_if_unique_id_configured()
 
