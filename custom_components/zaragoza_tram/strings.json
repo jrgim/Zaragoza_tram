@@ -1,0 +1,16 @@
+{
+  "config": {
+    "step": {
+      "bus_manual": {
+        "data_description": {
+          "linea": "Déjalo en blanco si quieres todas las líneas"
+        }
+      },
+      "bus_linea": {
+        "data_description": {
+          "linea": "Déjalo en blanco si quieres todas las líneas"
+        }
+      }
+    }
+  }
+}
