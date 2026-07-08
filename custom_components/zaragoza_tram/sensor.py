@@ -107,8 +107,10 @@ class ZaragozaBusSensor(SensorEntity):
             self._name = f"Bus {linea} {self._etiqueta} - Parada {parada}"
             self._attr_unique_id = f"{DOMAIN}_bus_{parada}_{linea}_{bus_number}"
         else:
-            # Sin línea fija: el nombre se actualizará en cada update() con
-            # la línea del bus que realmente resulte ser el próximo/siguiente.
+            # Sin línea fija, el nombre se queda genérico y estable: qué
+            # línea es cada llegada puede cambiar en cada actualización,
+            # así que va solo en el atributo "linea" (el nombre de una
+            # entidad no debe cambiar solo, rompería historial/automations).
             self._name = f"Bus {self._etiqueta} - Parada {parada}"
             self._attr_unique_id = f"{DOMAIN}_bus_{parada}_{bus_number}"
 
@@ -168,12 +170,9 @@ class ZaragozaBusSensor(SensorEntity):
 
         minutos, destino, campo = llegadas[self._bus_number - 1]
         self._state = minutos
-        linea_encontrada = destino.get("linea")
-        if linea_encontrada:
-            self._name = f"Bus {linea_encontrada} {self._etiqueta} - Parada {self._parada}"
         self._attrs = {
             "parada": data.get("title"),
-            "linea": linea_encontrada,
+            "linea": destino.get("linea"),
             "destino": destino.get("destino"),
             "texto_original": destino.get(campo),
             "ultima_actualizacion_api": data.get("lastUpdated"),
