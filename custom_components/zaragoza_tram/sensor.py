@@ -1,6 +1,7 @@
 import re
 import requests
 from homeassistant.components.sensor import SensorEntity
+from .api_utils import fetch_json_con_reintentos
 from .const import DOMAIN, API_URL, BUS_API_URL
 
 RE_MINUTOS = re.compile(r"(\d+)\s*min", re.IGNORECASE)
@@ -127,18 +128,10 @@ class ZaragozaBusSensor(SensorEntity):
         return self._attrs
 
     def update(self):
-        try:
-            response = requests.get(BUS_API_URL.format(poste=self._parada), timeout=15)
-        except requests.RequestException:
-            # La API del SAE falla a menudo: conservamos el último dato
-            return
-
-        if response.status_code != 200:
-            return
-
-        try:
-            data = response.json()
-        except ValueError:
+        data = fetch_json_con_reintentos(BUS_API_URL.format(poste=self._parada))
+        if data is None:
+            # La API del SAE falla a menudo, incluso tras reintentar:
+            # conservamos el último dato en vez de dejar el sensor vacío.
             return
 
         destinos = data.get("destinos", [])
