@@ -1,6 +1,7 @@
 DOMAIN = "zaragoza_tram"
 API_URL = "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/transporte-urbano/parada-tranvia.json"
 BUS_API_URL = "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/transporte-urbano/poste-autobus/tuzsa-{poste}.json"
+BUS_LISTADO_URL = "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/transporte-urbano/poste-autobus.json"
 PARADAS = [
     ('101', 'AVENIDA DE LA ACADEMIA - Dir: MAGO DE OZ'), ('102', 'AVENIDA DE LA ACADEMIA - Dir: AVENIDA DE LA ACADEMIA'), ('301', 'JUSLIBOL - Dir: MAGO DE OZ'), 
     ('302', 'JUSLIBOL - Dir: AVENIDA DE LA ACADEMIA'), ('201', 'PARQUE GOYA - Dir: MAGO DE OZ'), ('202', 'PARQUE GOYA - Dir: AVENIDA DE LA ACADEMIA'), ('602', 'ADOLFO AZNAR - Dir: AVENIDA DE LA ACADEMIA'), 

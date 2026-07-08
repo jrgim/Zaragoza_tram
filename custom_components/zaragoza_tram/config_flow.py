@@ -3,12 +3,15 @@ import re
 import requests
 from homeassistant import config_entries
 import voluptuous as vol
-from .const import DOMAIN, PARADAS, BUS_API_URL
+from .const import DOMAIN, PARADAS, BUS_API_URL, BUS_LISTADO_URL
 
 RE_PARADA = re.compile(r"^(?:PA)?0*(\d+)$", re.IGNORECASE)
 
 MODO_COMBINADO = "Próximo y siguiente (cualquier línea)"
 MODO_POR_LINEA = "Una entidad por línea"
+
+BUSQUEDA_MANUAL = "Ya sé el código de la parada (PA00239, poste, etc.)"
+BUSQUEDA_LISTADO = "Buscar la parada en el listado"
 
 class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -51,6 +54,22 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_bus(self, user_input=None):
+        """Primer paso de bus: cómo identificar la parada."""
+        if user_input is not None:
+            if user_input["busqueda"] == BUSQUEDA_LISTADO:
+                return await self.async_step_bus_buscar()
+            return await self.async_step_bus_manual()
+
+        return self.async_show_form(
+            step_id="bus",
+            data_schema=vol.Schema({
+                vol.Required("busqueda", default=BUSQUEDA_LISTADO): vol.In(
+                    [BUSQUEDA_LISTADO, BUSQUEDA_MANUAL]
+                ),
+            }),
+        )
+
+    async def async_step_bus_manual(self, user_input=None):
         """Configuración de parada de bus: código de parada + línea opcional."""
         errors = {}
 
@@ -69,12 +88,57 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return await self.async_step_bus_mode()
 
         return self.async_show_form(
-            step_id="bus",
+            step_id="bus_manual",
             data_schema=vol.Schema({
                 vol.Required("parada"): str,
                 vol.Optional("linea", default=""): str,
             }),
             errors=errors,
+        )
+
+    async def async_step_bus_buscar(self, user_input=None):
+        """Buscar la parada por dirección en el listado completo de postes."""
+        errors = {}
+
+        if user_input is not None and getattr(self, "_opciones_busqueda", None):
+            self._parada = self._opciones_busqueda.get(user_input["parada_busqueda"])
+            if self._parada:
+                return await self.async_step_bus_linea()
+            errors["base"] = "listado_no_disponible"
+
+        postes = await self.hass.async_add_executor_job(self._fetch_todas_paradas)
+        if not postes:
+            errors["base"] = "listado_no_disponible"
+            return self.async_show_form(
+                step_id="bus_buscar",
+                data_schema=vol.Schema({}),
+                errors=errors,
+            )
+
+        # Etiqueta legible (incluye dirección y líneas) -> id de poste.
+        self._opciones_busqueda = {p["title"]: p["id"].replace("tuzsa-", "") for p in postes}
+
+        return self.async_show_form(
+            step_id="bus_buscar",
+            data_schema=vol.Schema({
+                vol.Required("parada_busqueda"): vol.In(list(self._opciones_busqueda.keys())),
+            }),
+            errors=errors,
+        )
+
+    async def async_step_bus_linea(self, user_input=None):
+        """Tras elegir la parada en el listado: línea opcional."""
+        if user_input is not None:
+            linea = user_input.get("linea", "").strip().upper()
+            if linea:
+                return await self._create_bus_entry(self._parada, linea)
+            return await self.async_step_bus_mode()
+
+        return self.async_show_form(
+            step_id="bus_linea",
+            data_schema=vol.Schema({
+                vol.Optional("linea", default=""): str,
+            }),
         )
 
     async def async_step_bus_mode(self, user_input=None):
@@ -133,3 +197,17 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         except ValueError:
             return []
         return sorted({d.get("linea") for d in data.get("destinos", []) if d.get("linea")})
+
+    @staticmethod
+    def _fetch_todas_paradas():
+        try:
+            response = requests.get(BUS_LISTADO_URL, timeout=15)
+        except requests.RequestException:
+            return []
+        if response.status_code != 200:
+            return []
+        try:
+            data = response.json()
+        except ValueError:
+            return []
+        return [p for p in data.get("result", []) if p.get("id") and p.get("title")]
