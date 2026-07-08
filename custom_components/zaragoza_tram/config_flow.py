@@ -1,4 +1,5 @@
 import re
+import unicodedata
 
 import requests
 from homeassistant import config_entries
@@ -7,6 +8,13 @@ from .const import DOMAIN, PARADAS, BUS_API_URL, BUS_LISTADO_URL
 
 RE_PARADA = re.compile(r"^(?:PA)?0*(\d+)$", re.IGNORECASE)
 RE_TITULO = re.compile(r"^\((?P<id>[^)]+)\)\s*(?P<resto>.+)$")
+
+
+def _normalizar(texto):
+    """Quita tildes/diacríticos y pasa a minúsculas, para que la búsqueda no
+    distinga 'clinico' de 'clínico'."""
+    sin_tildes = unicodedata.normalize("NFKD", texto)
+    return "".join(c for c in sin_tildes if not unicodedata.combining(c)).lower()
 
 MAX_RESULTADOS_BUSQUEDA = 30
 
@@ -104,14 +112,14 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            query = user_input.get("query", "").strip().lower()
+            query = _normalizar(user_input.get("query", "").strip())
             postes = await self.hass.async_add_executor_job(self._fetch_todas_paradas)
 
             if not postes:
                 errors["base"] = "listado_no_disponible"
             else:
                 coincidencias = sorted(
-                    (p for p in postes if query in p["title"].lower()),
+                    (p for p in postes if query in _normalizar(p["title"])),
                     key=self._etiqueta,
                 )
                 if not coincidencias:
