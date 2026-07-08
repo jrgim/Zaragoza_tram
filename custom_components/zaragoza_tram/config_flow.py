@@ -6,6 +6,9 @@ import voluptuous as vol
 from .const import DOMAIN, PARADAS, BUS_API_URL, BUS_LISTADO_URL
 
 RE_PARADA = re.compile(r"^(?:PA)?0*(\d+)$", re.IGNORECASE)
+RE_TITULO = re.compile(r"^\((?P<id>[^)]+)\)\s*(?P<resto>.+)$")
+
+MAX_RESULTADOS_BUSQUEDA = 30
 
 MODO_COMBINADO = "Próximo y siguiente (cualquier línea)"
 MODO_POR_LINEA = "Una entidad por línea"
@@ -97,34 +100,63 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_bus_buscar(self, user_input=None):
-        """Buscar la parada por dirección en el listado completo de postes."""
+        """Buscar la parada escribiendo parte de la dirección (o una línea)."""
         errors = {}
 
-        if user_input is not None and getattr(self, "_opciones_busqueda", None):
-            self._parada = self._opciones_busqueda.get(user_input["parada_busqueda"])
-            if self._parada:
-                return await self.async_step_bus_linea()
-            errors["base"] = "listado_no_disponible"
+        if user_input is not None:
+            query = user_input.get("query", "").strip().lower()
+            postes = await self.hass.async_add_executor_job(self._fetch_todas_paradas)
 
-        postes = await self.hass.async_add_executor_job(self._fetch_todas_paradas)
-        if not postes:
-            errors["base"] = "listado_no_disponible"
-            return self.async_show_form(
-                step_id="bus_buscar",
-                data_schema=vol.Schema({}),
-                errors=errors,
-            )
-
-        # Etiqueta legible (incluye dirección y líneas) -> id de poste.
-        self._opciones_busqueda = {p["title"]: p["id"].replace("tuzsa-", "") for p in postes}
+            if not postes:
+                errors["base"] = "listado_no_disponible"
+            else:
+                coincidencias = sorted(
+                    (p for p in postes if query in p["title"].lower()),
+                    key=self._etiqueta,
+                )
+                if not coincidencias:
+                    errors["base"] = "sin_resultados"
+                elif len(coincidencias) > MAX_RESULTADOS_BUSQUEDA:
+                    errors["base"] = "demasiados_resultados"
+                elif len(coincidencias) == 1:
+                    self._parada = coincidencias[0]["id"].replace("tuzsa-", "")
+                    return await self.async_step_bus_linea()
+                else:
+                    self._opciones_busqueda = {
+                        self._etiqueta(p): p["id"].replace("tuzsa-", "") for p in coincidencias
+                    }
+                    return await self.async_step_bus_buscar_resultados()
 
         return self.async_show_form(
             step_id="bus_buscar",
             data_schema=vol.Schema({
-                vol.Required("parada_busqueda"): vol.In(list(self._opciones_busqueda.keys())),
+                vol.Required("query"): str,
             }),
             errors=errors,
         )
+
+    async def async_step_bus_buscar_resultados(self, user_input=None):
+        """Elegir una parada concreta entre las coincidencias de la búsqueda."""
+        if user_input is not None:
+            self._parada = self._opciones_busqueda.get(user_input["parada_busqueda"])
+            if self._parada:
+                return await self.async_step_bus_linea()
+
+        return self.async_show_form(
+            step_id="bus_buscar_resultados",
+            data_schema=vol.Schema({
+                vol.Required("parada_busqueda"): vol.In(list(self._opciones_busqueda.keys())),
+            }),
+        )
+
+    @staticmethod
+    def _etiqueta(poste):
+        """Reordena '(239) Av. San Juan... Líneas: 22' a 'Av. San Juan... Líneas: 22 [239]'
+        para que la dirección quede primero (y así se pueda ordenar/leer por calle)."""
+        match = RE_TITULO.match(poste["title"])
+        if not match:
+            return poste["title"]
+        return f"{match.group('resto')} [{match.group('id')}]"
 
     async def async_step_bus_linea(self, user_input=None):
         """Tras elegir la parada en el listado: línea opcional."""
