@@ -15,5 +15,27 @@
         "description": "Si combinas todas las líneas, la línea de cada llegada solo aparece como atributo 'linea' del sensor (no se ve en el valor principal). Para verla en el panel sin entrar en el detalle de la entidad necesitarás una tarjeta personalizada (mira los ejemplos del README). Si prefieres verla siempre en el estado, elige 'Una entidad por línea'."
       }
     }
+  },
+  "options": {
+    "abort": {
+      "solo_bus": "Esta opción solo está disponible para entradas de bus; las de tranvía no tienen nada que configurar aquí."
+    },
+    "step": {
+      "init": {
+        "title": "Editar parada de bus {parada}",
+        "data": {
+          "linea": "Línea"
+        },
+        "data_description": {
+          "linea": "Déjalo en blanco si quieres todas las líneas"
+        }
+      },
+      "modo": {
+        "title": "Sin línea concreta",
+        "data": {
+          "modo": "Modo"
+        }
+      }
+    }
   }
 }

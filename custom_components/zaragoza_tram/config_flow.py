@@ -1,12 +1,14 @@
 import re
 import unicodedata
 
-import requests
 from homeassistant import config_entries
+from homeassistant.core import callback
 import voluptuous as vol
+from .api_utils import fetch_json_con_reintentos
 from .const import DOMAIN, PARADAS, BUS_API_URL, BUS_LISTADO_URL
 
 RE_PARADA = re.compile(r"^(?:PA)?0*(\d+)$", re.IGNORECASE)
+RE_CODIGO_BUSQUEDA = re.compile(r"^PA\s*0*(\d+)$", re.IGNORECASE)
 RE_TITULO = re.compile(r"^\((?P<id>[^)]+)\)\s*(?P<resto>.+)$")
 
 
@@ -112,28 +114,42 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            query = _normalizar(user_input.get("query", "").strip())
+            query_raw = user_input.get("query", "").strip()
             postes = await self.hass.async_add_executor_job(self._fetch_todas_paradas)
 
             if not postes:
                 errors["base"] = "listado_no_disponible"
             else:
-                coincidencias = sorted(
-                    (p for p in postes if query in _normalizar(p["title"])),
-                    key=self._etiqueta,
-                )
-                if not coincidencias:
+                match_codigo = RE_CODIGO_BUSQUEDA.match(query_raw)
+                if match_codigo:
+                    # Ha escrito el código oficial de la marquesina (PA00100):
+                    # buscamos coincidencia exacta por id, no por texto.
+                    codigo = match_codigo.group(1)
+                    encontrada = next(
+                        (p for p in postes if p["id"].replace("tuzsa-", "") == codigo), None
+                    )
+                    if encontrada:
+                        self._parada = codigo
+                        return await self.async_step_bus_linea()
                     errors["base"] = "sin_resultados"
-                elif len(coincidencias) > MAX_RESULTADOS_BUSQUEDA:
-                    errors["base"] = "demasiados_resultados"
-                elif len(coincidencias) == 1:
-                    self._parada = coincidencias[0]["id"].replace("tuzsa-", "")
-                    return await self.async_step_bus_linea()
                 else:
-                    self._opciones_busqueda = {
-                        self._etiqueta(p): p["id"].replace("tuzsa-", "") for p in coincidencias
-                    }
-                    return await self.async_step_bus_buscar_resultados()
+                    query = _normalizar(query_raw)
+                    coincidencias = sorted(
+                        (p for p in postes if query in _normalizar(p["title"])),
+                        key=self._etiqueta,
+                    )
+                    if not coincidencias:
+                        errors["base"] = "sin_resultados"
+                    elif len(coincidencias) > MAX_RESULTADOS_BUSQUEDA:
+                        errors["base"] = "demasiados_resultados"
+                    elif len(coincidencias) == 1:
+                        self._parada = coincidencias[0]["id"].replace("tuzsa-", "")
+                        return await self.async_step_bus_linea()
+                    else:
+                        self._opciones_busqueda = {
+                            self._etiqueta(p): p["id"].replace("tuzsa-", "") for p in coincidencias
+                        }
+                        return await self.async_step_bus_buscar_resultados()
 
         return self.async_show_form(
             step_id="bus_buscar",
@@ -225,29 +241,83 @@ class ZaragozaTramConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return ZaragozaTramOptionsFlow()
+
+    @staticmethod
     def _fetch_lineas(parada):
-        try:
-            response = requests.get(BUS_API_URL.format(poste=parada), timeout=10)
-        except requests.RequestException:
-            return []
-        if response.status_code != 200:
-            return []
-        try:
-            data = response.json()
-        except ValueError:
+        data = fetch_json_con_reintentos(BUS_API_URL.format(poste=parada), timeout=10)
+        if data is None:
             return []
         return sorted({d.get("linea") for d in data.get("destinos", []) if d.get("linea")})
 
     @staticmethod
     def _fetch_todas_paradas():
-        try:
-            response = requests.get(BUS_LISTADO_URL, timeout=15)
-        except requests.RequestException:
-            return []
-        if response.status_code != 200:
-            return []
-        try:
-            data = response.json()
-        except ValueError:
+        data = fetch_json_con_reintentos(BUS_LISTADO_URL)
+        if data is None:
             return []
         return [p for p in data.get("result", []) if p.get("id") and p.get("title")]
+
+
+class ZaragozaTramOptionsFlow(config_entries.OptionsFlow):
+    """Permite cambiar la línea o el modo de una entrada de bus ya creada,
+    sin tener que borrarla y volver a añadirla."""
+
+    async def async_step_init(self, user_input=None):
+        entry = self.config_entry
+        if entry.data.get("tipo") != "bus":
+            return self.async_abort(reason="solo_bus")
+
+        if user_input is not None:
+            linea = user_input.get("linea", "").strip().upper()
+            self._nuevos_datos = dict(entry.data)
+
+            if linea:
+                self._nuevos_datos.update({"linea": linea, "modo": "combinado"})
+                self._nuevos_datos.pop("lineas", None)
+                return self._guardar()
+
+            # Sin línea concreta: preguntamos el modo, igual que en el alta.
+            return await self.async_step_modo()
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({
+                vol.Optional("linea", default=entry.data.get("linea", "")): str,
+            }),
+            description_placeholders={"parada": entry.data.get("parada", "")},
+        )
+
+    async def async_step_modo(self, user_input=None):
+        entry = self.config_entry
+
+        if user_input is not None:
+            self._nuevos_datos["linea"] = ""
+            if user_input["modo"] == MODO_POR_LINEA:
+                lineas = await self.hass.async_add_executor_job(
+                    ZaragozaTramConfigFlow._fetch_lineas, entry.data["parada"]
+                )
+                if lineas:
+                    self._nuevos_datos.update({"modo": "por_linea", "lineas": lineas})
+                else:
+                    self._nuevos_datos.update({"modo": "combinado"})
+                    self._nuevos_datos.pop("lineas", None)
+            else:
+                self._nuevos_datos.update({"modo": "combinado"})
+                self._nuevos_datos.pop("lineas", None)
+            return self._guardar()
+
+        modo_actual = MODO_POR_LINEA if entry.data.get("modo") == "por_linea" else MODO_COMBINADO
+        return self.async_show_form(
+            step_id="modo",
+            data_schema=vol.Schema({
+                vol.Required("modo", default=modo_actual): vol.In(
+                    [MODO_COMBINADO, MODO_POR_LINEA]
+                ),
+            }),
+        )
+
+    def _guardar(self):
+        self.hass.config_entries.async_update_entry(self.config_entry, data=self._nuevos_datos)
+        return self.async_create_entry(title="", data={})

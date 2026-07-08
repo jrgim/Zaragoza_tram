@@ -15,6 +15,7 @@ Los datos se obtienen gracias a la API proporcionada por el Ayuntamiento de Zara
   - [2. Usando HACS](#2-usando-hacs)
 - [Configuración](#configuración)
   - [Desde la Interfaz de Usuario](#desde-la-interfaz-de-usuario)
+  - [Cambiar línea o modo sin recrear la integración](#cambiar-línea-o-modo-sin-recrear-la-integración)
 - [Ejemplos de tarjetas Lovelace (opcionales)](#ejemplos-de-tarjetas-lovelace-opcionales)
   - [Ejemplo sencillo con Mushroom Cards](#ejemplo-sencillo-con-mushroom-cards)
   - [Ejemplo avanzado para Plaza España (Dirección: Mago de Oz)](#ejemplo-avanzado-para-plaza-españa-dirección-mago-de-oz)
@@ -49,12 +50,18 @@ Los datos se obtienen gracias a la API proporcionada por el Ayuntamiento de Zara
 **Tranvía**: selecciona la parada de la lista desplegable y ¡listo! Tendrás dos sensores (próximo y siguiente tranvía).
 
 **Bus**: primero eliges cómo identificar la parada:
-- **Buscar la parada en el listado**: escribe parte de la dirección (o el número de línea) y elige entre los resultados.
+- **Buscar la parada en el listado**: escribe parte de la dirección (o el número de línea) y elige entre los resultados. También puedes escribir directamente el código oficial de la marquesina (`PA00100`) en este mismo campo — si lo reconoce, te lleva directo a esa parada sin pasar por la lista de resultados.
 - **Ya sé el código de la parada**: escribe el código tal cual aparece en la marquesina/app oficial (`PA00100`) o el número de poste (`100`).
 
 Después, opcionalmente puedes filtrar por línea. Si dejas la línea en blanco, eliges entre:
 - **Próximo y siguiente (cualquier línea)**: dos sensores con las dos llegadas más próximas a la parada, sea cual sea la línea (la línea de cada llegada va en el atributo `linea`, ya que puede cambiar de una actualización a otra).
 - **Una entidad por línea**: un par de sensores (próximo/siguiente) por cada línea que pase por esa parada.
+
+Las peticiones a la API de bus (que falla con cierta frecuencia) se reintentan automáticamente hasta 3 veces antes de dejar el sensor con el último dato conocido.
+
+### **Cambiar línea o modo sin recrear la integración**
+
+Las entradas de bus tienen un botón **Configurar** (Ajustes → Dispositivos y servicios → tu entrada de bus → ⚙️ Configurar) que permite cambiar la línea filtrada o pasar de "combinado" a "una entidad por línea" (y viceversa) sin borrar la integración ni perder el historial de las entidades que no cambian. Las de tranvía no tienen nada que configurar ahí.
 
 ---
 
