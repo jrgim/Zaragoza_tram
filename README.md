@@ -8,19 +8,33 @@ Esta integración te permite crear sensores que muestran el tiempo restante para
 Los datos se obtienen gracias a la API proporcionada por el Ayuntamiento de Zaragoza:  
 [API REST Zaragoza](https://www.zaragoza.es/sede/portal/datos-abiertos/servicio/catalogo/327)
 
+> ## 🧪 Novedad en beta: soporte de autobús urbano
+>
+> Desde `v1.2.0-beta.1` la integración también soporta **autobuses urbanos**, además del tranvía. Está en fase **beta**: el tranvía sigue funcionando exactamente igual que siempre, pero la parte de bus es nueva y agradecemos que la probéis y reportéis cualquier problema en [Issues](https://github.com/jrgim/Zaragoza_tram/issues).
+>
+> **Para instalar la beta desde HACS:**
+> 1. Ve a la integración **Zaragoza Tram** dentro de HACS.
+> 2. Menú ⋮ → **Redownload** (o desde la ficha del repositorio) y activa **"Show beta versions"** / **"Mostrar versiones beta"**.
+> 3. Elige la versión `1.2.0-beta.1` (o la beta más reciente) e instala.
+> 4. Reinicia Home Assistant.
+>
+> Mientras esté en beta, los usuarios que no activen esa opción seguirán recibiendo la última versión estable sin cambios.
+
 ## **Índice**
 
-- [Instalación](#instalación)
-  - [1. Manual](#1-manual)
-  - [2. Usando HACS](#2-usando-hacs)
-- [Configuración](#configuración)
-  - [Desde la Interfaz de Usuario](#desde-la-interfaz-de-usuario)
-  - [Cambiar línea o modo sin recrear la integración](#cambiar-línea-o-modo-sin-recrear-la-integración)
-- [Ejemplos de tarjetas Lovelace (opcionales)](#ejemplos-de-tarjetas-lovelace-opcionales)
-  - [Ejemplo sencillo con Mushroom Cards](#ejemplo-sencillo-con-mushroom-cards)
-  - [Ejemplo avanzado para Plaza España (Dirección: Mago de Oz)](#ejemplo-avanzado-para-plaza-españa-dirección-mago-de-oz)
-  - [Ejemplo con Mushroom Cards para bus (modo combinado)](#ejemplo-con-mushroom-cards-para-bus-modo-combinado)
-  - [Ejemplo con button-card para bus (modo "una entidad por línea")](#ejemplo-con-button-card-para-bus-modo-una-entidad-por-línea)
+- [**Zaragoza Tram**](#zaragoza-tram)
+  - [**Índice**](#índice)
+  - [**Instalación**](#instalación)
+    - [**1. Manual**](#1-manual)
+    - [**2. Usando HACS**](#2-usando-hacs)
+  - [**Configuración**](#configuración)
+    - [**Desde la Interfaz de Usuario**](#desde-la-interfaz-de-usuario)
+    - [**Cambiar línea o modo sin recrear la integración**](#cambiar-línea-o-modo-sin-recrear-la-integración)
+  - [**Ejemplos de tarjetas Lovelace (opcionales)**](#ejemplos-de-tarjetas-lovelace-opcionales)
+    - [**Ejemplo sencillo con Mushroom Cards**](#ejemplo-sencillo-con-mushroom-cards)
+    - [**Ejemplo avanzado para Plaza España (Dirección: Mago de Oz)**](#ejemplo-avanzado-para-plaza-españa-dirección-mago-de-oz)
+    - [**Ejemplo con Mushroom Cards para bus (modo combinado)**](#ejemplo-con-mushroom-cards-para-bus-modo-combinado)
+    - [**Ejemplo con button-card para bus (modo "una entidad por línea")**](#ejemplo-con-button-card-para-bus-modo-una-entidad-por-línea)
 
 ## **Instalación**
 
