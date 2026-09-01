@@ -8,6 +8,20 @@ Esta integración te permite crear sensores que muestran el tiempo restante para
 Los datos se obtienen gracias a la API proporcionada por el Ayuntamiento de Zaragoza:  
 [API REST Zaragoza](https://www.zaragoza.es/sede/portal/datos-abiertos/servicio/catalogo/327)
 
+## **Índice**
+
+- [Instalación](#instalación)
+  - [1. Manual](#1-manual)
+  - [2. Usando HACS](#2-usando-hacs)
+- [Configuración](#configuración)
+  - [Desde la Interfaz de Usuario](#desde-la-interfaz-de-usuario)
+  - [Cambiar línea o modo sin recrear la integración](#cambiar-línea-o-modo-sin-recrear-la-integración)
+- [Ejemplos de tarjetas Lovelace (opcionales)](#ejemplos-de-tarjetas-lovelace-opcionales)
+  - [Ejemplo sencillo con Mushroom Cards](#ejemplo-sencillo-con-mushroom-cards)
+  - [Ejemplo avanzado para Plaza España (Dirección: Mago de Oz)](#ejemplo-avanzado-para-plaza-españa-dirección-mago-de-oz)
+  - [Ejemplo con Mushroom Cards para bus (modo combinado)](#ejemplo-con-mushroom-cards-para-bus-modo-combinado)
+  - [Ejemplo con button-card para bus (modo "una entidad por línea")](#ejemplo-con-button-card-para-bus-modo-una-entidad-por-línea)
+
 ## **Instalación**
 
 ### **1. Manual**
@@ -31,8 +45,23 @@ Los datos se obtienen gracias a la API proporcionada por el Ayuntamiento de Zara
 
 1. Ve a **Ajustes** → **Dispositivos e Integraciones**.  
 2. Haz clic en el botón "+" y busca "Zaragoza Tram".  
-3. Selecciona la parada que deseas configurar desde la lista desplegable.  
-4. Guarda los cambios y ¡listo! Tendrás dos sensores configurados automáticamente (uno para el próximo tranvía y otro para el siguiente).
+3. Elige **Tranvía** o **Bus**.
+
+**Tranvía**: selecciona la parada de la lista desplegable y ¡listo! Tendrás dos sensores (próximo y siguiente tranvía).
+
+**Bus**: primero eliges cómo identificar la parada:
+- **Buscar la parada en el listado**: escribe parte de la dirección (o el número de línea) y elige entre los resultados. También puedes escribir directamente el código oficial de la marquesina (`PA00100`) en este mismo campo — si lo reconoce, te lleva directo a esa parada sin pasar por la lista de resultados.
+- **Ya sé el código de la parada**: escribe el código tal cual aparece en la marquesina/app oficial (`PA00100`) o el número de poste (`100`).
+
+Después, opcionalmente puedes filtrar por línea. Si dejas la línea en blanco, eliges entre:
+- **Próximo y siguiente (cualquier línea)**: dos sensores con las dos llegadas más próximas a la parada, sea cual sea la línea (la línea de cada llegada va en el atributo `linea`, ya que puede cambiar de una actualización a otra).
+- **Una entidad por línea**: un par de sensores (próximo/siguiente) por cada línea que pase por esa parada.
+
+Las peticiones a la API de bus (que falla con cierta frecuencia) se reintentan automáticamente hasta 3 veces antes de dejar el sensor con el último dato conocido.
+
+### **Cambiar línea o modo sin recrear la integración**
+
+Las entradas de bus tienen un botón **Configurar** (Ajustes → Dispositivos y servicios → tu entrada de bus → ⚙️ Configurar) que permite cambiar la línea filtrada o pasar de "combinado" a "una entidad por línea" (y viceversa) sin borrar la integración ni perder el historial de las entidades que no cambian. Las de tranvía no tienen nada que configurar ahí.
 
 ---
 
@@ -227,4 +256,138 @@ cards:
         double_tap_action:
           action: none
         triggers_update: all
+```
+
+### **Ejemplo con Mushroom Cards para bus (modo combinado)**
+
+> ⚠️ **En modo "Próximo y siguiente (cualquier línea)" la línea de cada llegada NO aparece en el estado del sensor**, solo como atributo `linea` (porque puede cambiar de una actualización a otra — mira más arriba por qué). El diálogo estándar "más información" de Home Assistant no muestra ese atributo para un sensor normal, así que para verlo en el panel de un vistazo necesitas una tarjeta como esta (o consultarlo en **Herramientas de desarrollo → Estados**). Si prefieres tenerlo siempre visible sin depender de una tarjeta, usa el modo "Una entidad por línea" en su lugar.
+
+En modo "Próximo y siguiente (cualquier línea)" la línea de cada llegada puede cambiar entre actualizaciones, así que en vez de una `mushroom-entity-card` normal usamos una `mushroom-template-card` para mostrar juntos el estado y el atributo `linea`. Cambia los `entity` por los tuyos (los ves en **Ajustes → Dispositivos y servicios → Entidades**).
+
+```yaml
+type: vertical-stack
+cards:
+  - type: custom:mushroom-title-card
+    title: 🚌 Próximo Bus - Av. Ejemplo
+    subtitle: Parada 100
+  - type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.bus_proximo_parada_100
+        primary: "Línea {{ state_attr(entity, 'linea') }}"
+        secondary: "{{ states(entity) }} min"
+        icon: mdi:bus
+        icon_color: green
+        layout: vertical
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
+        entity: sensor.bus_siguiente_parada_100
+        primary: "Línea {{ state_attr(entity, 'linea') }}"
+        secondary: "{{ states(entity) }} min"
+        icon: mdi:bus
+        icon_color: blue
+        layout: vertical
+        tap_action:
+          action: more-info
+```
+
+### **Ejemplo con button-card para bus (modo "una entidad por línea")**
+
+En modo "Una entidad por línea" cada línea tiene su propio par de sensores, así que aquí la línea sí es fija y se puede poner directamente en el nombre de cada tarjeta (sin plantillas). Ejemplo con tres líneas (10, 20 y 30) de la parada 100 — ajusta los `entity` y las líneas a las tuyas.
+
+```yaml
+type: vertical-stack
+cards:
+  - type: custom:button-card
+    name: 🚌 Av. Ejemplo
+    label: "Parada 100"
+    color_type: card
+    styles:
+      card:
+        - background: "linear-gradient(120deg, #ef6c00 0%, #f9a825 100%)"
+        - color: white
+        - font-size: 22px
+        - font-weight: bold
+        - padding: 20px
+        - border-radius: 20px
+        - box-shadow: 0 8px 18px rgba(230,108,0,0.13)
+      name:
+        - font-size: 26px
+        - font-weight: bold
+      label:
+        - font-size: 17px
+        - color: "#fff3e0"
+        - padding-top: 6px
+  - type: horizontal-stack
+    cards:
+      - type: custom:button-card
+        entity: sensor.bus_10_proximo_parada_100
+        name: Línea 10
+        icon: mdi:bus
+        color_type: icon
+        show_state: true
+        show_name: true
+        state_display: |
+          [[[
+            return entity.state + " min";
+          ]]]
+        styles:
+          card:
+            - background: "linear-gradient(120deg, #43a047 80%, #a5d6a7 100%)"
+            - color: white
+            - font-weight: bold
+            - border-radius: 20px
+            - padding: 16px
+          state:
+            - font-size: 24px
+            - font-weight: bold
+        tap_action:
+          action: more-info
+      - type: custom:button-card
+        entity: sensor.bus_20_proximo_parada_100
+        name: Línea 20
+        icon: mdi:bus
+        color_type: icon
+        show_state: true
+        show_name: true
+        state_display: |
+          [[[
+            return entity.state + " min";
+          ]]]
+        styles:
+          card:
+            - background: "linear-gradient(120deg, #1565c0 80%, #90caf9 100%)"
+            - color: white
+            - font-weight: bold
+            - border-radius: 20px
+            - padding: 16px
+          state:
+            - font-size: 24px
+            - font-weight: bold
+        tap_action:
+          action: more-info
+      - type: custom:button-card
+        entity: sensor.bus_30_proximo_parada_100
+        name: Línea 30
+        icon: mdi:bus
+        color_type: icon
+        show_state: true
+        show_name: true
+        state_display: |
+          [[[
+            return entity.state + " min";
+          ]]]
+        styles:
+          card:
+            - background: "linear-gradient(120deg, #6a1b9a 80%, #ce93d8 100%)"
+            - color: white
+            - font-weight: bold
+            - border-radius: 20px
+            - padding: 16px
+          state:
+            - font-size: 24px
+            - font-weight: bold
+        tap_action:
+          action: more-info
 ```
